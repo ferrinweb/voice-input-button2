@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link href="index.css" type="text/css" rel="stylesheet"></link>
+</head>
+
+<body>
+<div>
+  <div class="service-item service-item-taste">
+    <h2 class="service-item-title">产品体验</h2>
+    <div class="service-item-content service-item-taste-content">
+      <div class="taste-content">
+        <button class="taste-button ready-button" id="taste_button">开始识别</button>
+      </div>
+      <div class="start-taste">
+        <div class="start-taste-left">
+          <div class="time-box">
+            <span class="start-taste-line">
+              <hr class="hr hr1">
+              <hr class="hr hr2">
+              <hr class="hr hr3">
+              <hr class="hr hr4">
+              <hr class="hr hr5">
+              <hr class="hr hr6">
+              <hr class="hr hr7">
+              <hr class="hr hr8">
+              <hr class="hr hr9">
+              <hr class="hr hr10">
+            </span>
+            <span class="total-time"><span class="used-time">00: 00</span> / 01: 00</span></span>
+          </div>
+          <div class="start-taste-button">
+            <button class="taste-button start-button">结束识别</button>
+          </div>
+        </div>
+        <div class="output-box" id="result_output"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="hmac-sha256.js"></script>
+<script src="enc-base64-min.js"></script>
+<script src="jquery.js"></script>
+<script src="index.js"></script>
+</body>
+</html>
