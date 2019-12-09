@@ -13,17 +13,17 @@
  * 
  */
 
-import './hmac-sha256'
+import CryptoJS from './hmac-sha256'
 import './enc-base64-min'
 import recordWorker from './transform.pcm.worker'
-import createWorker from '@/utils/create-worker'
+import createWorker from '../../utils/create-worker'
+import locales from '../locales.json'
 
 // 音频转码worker
 const recorderWorker = createWorker(recordWorker)
 // 记录处理的缓存音频
 const buffer = []
 const AudioContext = window.AudioContext || window.webkitAudioContext
-const notSupportTip = '当前工作环境不支持语音录制或 Socket 通信！'
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia
 
 recorderWorker.onmessage = function (e) {
@@ -33,7 +33,7 @@ recorderWorker.onmessage = function (e) {
 class IatRecorder {
   constructor (config) {
     this.config = config
-    this.state = 'ing'
+    this.state = 'end'
     this.language = config.language || 'zh_cn'
     this.accent = config.accent || 'mandarin'
 
@@ -41,16 +41,24 @@ class IatRecorder {
     this.appId = config.appId
     this.apiKey = config.apiKey
     this.apiSecret = config.apiSecret
+    this.isAudioAvailable = !!(navigator.getUserMedia && AudioContext && recorderWorker)
+    this.pd = config.pd
+    this.rlang = config.rlang
+    this.ptt = config.ptt
+    this.nunum = config.nunum
+    this.vad_eos = config.vad_eos
   }
 
   start () {
     this.stop()
     if (navigator.getUserMedia && AudioContext) {
-      this.state = 'ing'
+      this.state = 'init'
       if (!this.recorder) {
-        const context = new AudioContext()
-        this.context = context
-        this.recorder = context.createScriptProcessor(0, 1, 1)
+        if (!this.context) {
+          const context = new AudioContext()
+          this.context = context
+        }
+        this.recorder = this.context.createScriptProcessor(0, 1, 1)
 
         const getMediaSuccess = (stream) => {
           const mediaStream = this.context.createMediaStreamSource(stream)
@@ -64,7 +72,7 @@ class IatRecorder {
           this.recorder = null
           this.mediaStream = null
           this.context = null
-          console.log('请求麦克风失败')
+          console.warn(e.message || locales[this.language].access_microphone_failed)
         }
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
           navigator.mediaDevices.getUserMedia({
@@ -89,17 +97,24 @@ class IatRecorder {
         this.connectWebsocket()
       }
     } else {
-      alert(notSupportTip)
+      alert(locales[this.language].not_supported)
     }
   }
 
   stop () {
     this.state = 'end'
     try {
-      this.mediaStream.disconnect(this.recorder)
-      this.recorder.disconnect()
-      this.ws.close()
-    } catch (e) { }
+      if (this.recorder) {
+        this.mediaStream.disconnect(this.recorder)
+        this.recorder.disconnect()
+        this.recorder = null
+      }
+      this.mediaStream && this.mediaStream.mediaStream.getTracks().forEach(track => {
+        track.stop()
+      })
+    } catch (e) {
+      console.warn(e.message)
+    }
   }
 
   sendData (buffer) {
@@ -127,15 +142,16 @@ class IatRecorder {
     } else if ('MozWebSocket' in window) {
       this.ws = new MozWebSocket(fullPath)
     } else {
-      alert(notSupportTip)
+      alert(locales[this.language].not_supported)
       return null
     }
     this.ws.onopen = (e) => {
       this.mediaStream.connect(this.recorder)
       this.recorder.connect(this.context.destination)
+      this.state = 'ready'
       setTimeout(() => {
         this.wsOpened(e)
-      }, 500)
+      }, 100)
       this.config.onStart && this.config.onStart(e)
     }
     this.ws.onmessage = (e) => {
@@ -156,17 +172,22 @@ class IatRecorder {
     if (this.ws.readyState !== 1) {
       return
     }
+    this.state = 'ing'
     const audioData = buffer.splice(0, 1280)
     const params = {
       'common': {
         'app_id': this.appId
       },
       'business': {
-        'language': this.language, // 小语种可在控制台--语音听写（流式）--方言/语种处添加试用
+        'language': this.language,
         'domain': 'iat',
-        'accent': this.accent, // 中文方言可在控制台--语音听写（流式）--方言/语种处添加试用
-        'vad_eos': 5000,
-        'dwa': 'wpgs' // 为使该功能生效，需到控制台开通动态修正功能（该功能免费）
+        'accent': this.accent,
+        'vad_eos': this.vad_eos,
+        'dwa': 'wpgs',
+        'pd': this.pd,
+        'rlang': this.rlang,
+        'ptt': this.ptt,
+        'nunum': this.nunum
       },
       'data': {
         'status': 0,
@@ -233,79 +254,3 @@ class IatRecorder {
 }
 
 export default IatRecorder
-
-class IatTaste {
-  constructor () {
-    const iatRecorder = new IatRecorder({
-      onClose: () => {
-        this.stop()
-        this.reset()
-      },
-      onError: () => {
-        this.stop()
-        this.reset()
-        alert('WebSocket连接失败')
-      },
-      onMessage: (e) => {
-        const jsonData = JSON.parse(e.data)
-        if (jsonData.data && jsonData.data.result) {
-          this.setResult(jsonData.data.result)
-        }
-      },
-      onStart: () => {}
-    })
-    this.iatRecorder = iatRecorder
-
-    this.resultText = ''
-  }
-
-  start () {
-    this.iatRecorder.start()
-  }
-
-  stop () {
-    this.iatRecorder.stop()
-  }
-
-  reset () {
-    buffer.splice(0)
-  }
-
-  init () {
-    let self = this
-    $('#taste_button').click(function () {
-      if (navigator.getUserMedia && AudioContext && recorderWorker) {
-        self.start()
-      } else {
-        alert(notSupportTip)
-      }
-    })
-    $('.start-button').click(function () {
-      if ($(this).text() === self.text.start) {
-        $('#result_output').text('')
-        self.resultText = ''
-        self.start()
-      } else {
-        self.reset()
-        self.stop()
-      }
-    })
-  }
-  setResult (data) {
-    let str = ''
-    var resultStr = ''
-    let ws = data.ws
-    for (let i = 0; i < ws.length; i++) {
-      str = str + ws[i].cw[0].w
-    }
-    // 开启wpgs会有此字段(前提：在控制台开通动态修正功能)
-    // 取值为 "apd"时表示该片结果是追加到前面的最终结果；取值为"rpl" 时表示替换前面的部分结果，替换范围为rg字段
-    if (data.pgs === 'apd') {
-      this.resultText = $('#result_output').text()
-    }
-    resultStr = this.resultText + str
-    $('#result_output').text(resultStr)
-  }
-}
-var iatTaste = new IatTaste()
-iatTaste.init()

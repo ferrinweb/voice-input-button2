@@ -3,7 +3,7 @@
 <!-- Description: recording-tip -->
 <template>
   <div class="recording-tip" :class="position">
-    <slot>{{text}}</slot>
+    <slot></slot>
   </div>
 </template>
 
@@ -11,10 +11,6 @@
 export default {
   name: 'recording-tip',
   props: {
-    text: {
-      type: [String, Number],
-      default: '录音中…'
-    },
     position: {
       type: String,
       default: 'top'
@@ -27,13 +23,20 @@ export default {
   .recording-tip{
     position: absolute;
     width: auto;
+    max-width: 270px;
+    display: flex;
+    justify-content: flex-end;
     white-space: nowrap;
-    padding: 2px 10px;
+    padding: 0;
     border-radius: 3px;
     background-color: #4b667d;
     box-shadow: rgba(0,0,0,.1) 0 2px 2px;
     color: #f2f2f2;
     pointer-events: none;
+    overflow: hidden;
+    border-width: 2px 15px 3px;
+    border-style: solid;
+    border-color: #4b667d;
     &:before{
       position: absolute;
       margin: auto;

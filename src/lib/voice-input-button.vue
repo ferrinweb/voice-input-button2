@@ -4,7 +4,6 @@
 <template>
   <div class="voice-input-button" :class="{active: recording, ready: isAudioAvailable}">
     <div class="record-btn"
-      v-if="!processing"
       @contextmenu="menuPop"
       @mousedown="pressMode ? start($event) : toggle($event)"
       @mouseup="pressMode && stop($event)"
@@ -14,15 +13,25 @@
       @touchleave="pressMode && stop($event)"
     >
       <microphone v-if="!recording" :color="color"></microphone>
-      <recording-icon v-else :color="color"></recording-icon>
-      <recording-tip v-if="recording" :position="tipPosition"><slot name="recording">录音中…</slot></recording-tip>
-      <recording-tip v-if="blank" :position="tipPosition"><slot name="no-speak">您好像没说什么</slot></recording-tip>
+      <recording-icon v-else-if="state === 'ing' || responding || result" :color="color"></recording-icon>
+      <loading v-else :color="color"></loading>
+      <transition name="fade">
+        <recording-tip v-if="state === 'ing' || responding || result" :position="tipPosition">
+          <slot name="recording">{{ result || locale.recording }}</slot>
+        </recording-tip>
+        <recording-tip v-if="state === 'init'" :position="tipPosition">
+          <slot name="wait">{{ locale.wait }}</slot>
+        </recording-tip>
+        <recording-tip v-if="blank" :position="tipPosition">
+          <slot name="no-speak">{{ locale.say_nothing }}</slot>
+        </recording-tip>
+      </transition>
     </div>
-    <loading v-else :color="color"></loading>
   </div>
 </template>
 
 <script>
+import locales from './locales.json'
 import Recorder from './recorder'
 import loading from './components/icons/loading'
 import recordingIcon from './components/icons/recording-icon'
@@ -33,6 +42,8 @@ const freezeProperty = (obj, key) => {
     configurable: false
   })
 }
+const buffer = []
+
 export default {
   name: 'voice-input-button',
   components: {
@@ -48,7 +59,7 @@ export default {
     },
     tipPosition: String,
     appId: String,
-    APIKey: String,
+    apiKey: String,
     apiSecret: String,
     // 交互模式
     // 'press': 按下开始录音，放开结束录音
@@ -56,6 +67,26 @@ export default {
     interactiveMode: {
       type: String,
       default: 'press'
+    },
+    // 结果返回模式
+    // 'increment': 增量模式，增量返回识别结果，但对于每次返回都是一个完整的结果，包含对前面识别结果的追加、补充和修正
+    // 'complete': 完整模式，完成本次识别后返回最终结果
+    returnMode: {
+      type: String,
+      defualt: 'increment'
+    },
+    language: {
+      type: String,
+      default: 'zh_cn'
+    },
+    accent: String,
+    pd: String,
+    rlang: String,
+    ptt: Number,
+    nunum: Number,
+    vad_eos: {
+      type: Number,
+      default: 3000
     }
   },
   data () {
@@ -69,7 +100,9 @@ export default {
       inputTarget: null,
       isAudioAvailable: false,
       blank: false,
-      resultText: ''
+      resultCache: {},
+      result: '',
+      responding: false
     }
   },
   methods: {
@@ -83,54 +116,91 @@ export default {
     start (e) {
       e.preventDefault()
       if (!this.isAudioAvailable) {
-        alert('无法录音：未找到录音设备、当前浏览器不支持录音或用户未授权！')
+        alert(this.locale.not_supported)
         return
       }
       if (this.recording || (e.which !== 1 && e.which !== 0)) return
+      this.reset()
       this.recording = true
       this.startTime = new Date().getTime()
       this.timer = setInterval(() => {
         this.time = new Date().getTime() - this.startTime
       }, 20)
-      this.recorder.clear()
       this.recorder.start()
       this.$emit('record-start')
     },
     stop (e) {
-      e.preventDefault()
-      if (!this.recording || (e.which !== 1 && e.which !== 0)) return
+      e && e.preventDefault()
+      if (!this.recording || e && (e.which !== 1 && e.which !== 0)) return
       this.recording = false
       this.timer && clearInterval(this.timer)
       this.time = 0
-      this.recorder.stop()
       this.$emit('record-stop')
       this.processing = true
-      this.recorder.getSource().then(data => {
-        this.dictation(data)
-      })
+      this.recorder.stop()
     },
-    dictation (data) {
-      let server = this.server
-      let appId = this.appId
-      let APIKey = this.APIKey
-      IAT(data, {server, appId, APIKey}).then(response => {
-        this.processing = false
-        let data = response.data.data
-        if (data) {
-          this.$emit('record', data)
-          this.$emit('input', data)
+    reset () {
+      buffer.splice(0)
+      this.resultCache = {}
+      this.responding = false
+      setTimeout(() => {
+        this.result = ''
+      }, 500)
+    },
+    appendResult (text, sn) {
+      this.resultCache[sn] = { text }
+    },
+    replaceResult (text, sn, start, end) {
+      this.appendResult(text, sn)
+      const resultCache = this.resultCache
+      for (let i = start; i <= end; i++) {
+        resultCache[i].discarded = true
+      }
+    },
+    getResult () {
+      return Object.values(this.resultCache).filter(item => !item.discarded).map(item => item.text).join('')
+    },
+    setResult (data) {
+      this.responding = true
+      let str = ''
+      const ws = data.ws
+      for (let i = 0; i < ws.length; i++) {
+        str = str + ws[i].cw[0].w
+      }
+      const pgs = data.pgs
+      const sn = data.sn
+      const ls = data.ls
+      if (pgs) {
+        // 开启 wpgs 会有此字段(前提：在控制台开通动态修正功能)
+        // 取值为 apd 时表示该片结果是追加到前面的最终结果
+        // 取值为 rpl 时表示替换前面的部分结果，替换范围为 rg 字段
+        if (pgs === 'apd') {
+          this.appendResult(str, sn)
         } else {
-          this.$emit('record-blank')
-          this.blank = true
-          setTimeout(() => {
-            this.blank = false
-          }, 1000)
+          var [s, e] = data.rg
+          this.replaceResult(str, sn, s, e)
         }
-      }).catch(error => {
-        this.$emit('record-failed', error)
-        console.warn(error)
-        this.processing = false
-      })
+      } else {
+        this.appendResult(str, sn)
+      }
+      const result = this.getResult()
+      this.result = result
+
+      // 如果是完成模式，则仅在识别结束时返回最终结果
+      if (this.completeMode && !ls) return
+      
+      ls && this.reset()
+
+      if (result) {
+        this.$emit('record', result)
+        this.$emit('input', result)
+      } else {
+        this.$emit('record-blank')
+        this.blank = true
+        setTimeout(() => {
+          this.blank = false
+        }, 1000)
+      }
     }
   },
   computed: {
@@ -139,24 +209,34 @@ export default {
     },
     touchMode () {
       return this.interactiveMode === 'touch'
-    }
-  },
-  watch: {
-    'recorder.ready' (value) {
-      this.isAudioAvailable = value
-      value && this.$emit('record-ready')
+    },
+    incrementMode () {
+      return this.returnMode === 'increment'
+    },
+    completeMode () {
+      return this.returnMode === 'complete'
+    },
+    locale () {
+      const locale = locales[(this.IATConfig || {}).language || this.language]
+      return locale
+    },
+    state () {
+      return this.recorder ? this.recorder.state : 'end'
     }
   },
   created () {
+    const IATConfig = this.IATConfig || {}
     const recorder = new Recorder({
       onClose: () => {
         this.stop()
-        this.reset()
+        this.processing = false
       },
       onError: () => {
         this.stop()
         this.reset()
-        alert('WebSocket连接失败')
+        this.processing = false
+        this.$emit('record-failed', error)
+        alert(this.locale.socket_error)
       },
       onMessage: (e) => {
         const jsonData = JSON.parse(e.data)
@@ -165,24 +245,29 @@ export default {
         }
       },
       onStart: () => {},
-      appId: this.appId,
-      apiKey: this.apiKey,
-      apiSecret: this.apiSecret
+      appId: IATConfig.appId || this.appId,
+      apiKey: IATConfig.apiKey || this.apiKey,
+      apiSecret: IATConfig.apiSecret || this.apiSecret,
+      accent: IATConfig.accent || this.accent,
+      language: IATConfig.language || this.language,
+      pd: IATConfig.pd || this.pd,
+      rlang: IATConfig.rlang || this.rlang,
+      ptt: IATConfig.ptt || this.ptt,
+      nunum: IATConfig.nunum || this.nunum,
+      vad_eos: IATConfig.vad_eos || this.vad_eos
     })
-    this.recorder = recorder
-  },
-  mounted () {
-    let {sampleRate, sampleBits} = ASRConfig
-    const recorder = new Recorder({sampleRate, sampleBits})
-    const freezKeys = ['worker', 'config', 'callback', 'createTime']
+    const freezKeys = [
+      'appId', 'apiSecret', 'apiKey', 'accent', 'language',
+      'pd', 'rlang', 'ptt', 'nunum', 'vad_eos', 'config'
+    ]
     freezKeys.forEach(key => {
       freezeProperty(recorder, key)
     })
     this.recorder = recorder
-    this.recorder.init()
+    this.isAudioAvailable = this.recorder.isAudioAvailable
   },
   beforeDestroy () {
-    this.recorder.destroy()
+    this.recorder.stop()
     this.recorder = null
   }
 }
@@ -239,5 +324,11 @@ export default {
     &.recording{
       opacity: 1;
     }
+  }
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .3s;
+  }
+  .fade-enter, .fade-leave-to {
+    opacity: 0;
   }
 </style>

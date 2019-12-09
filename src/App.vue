@@ -3,39 +3,31 @@
 <!-- Description: voice-input-button-demo -->
 <template>
   <div id="app">
-    <div class="result" @click="show = !show">{{result}}</div>
     <div class="voice-input-button-wrapper">
       <voice-input-button
-          ref="recorderButton"
-          v-if="show"
-          v-model="result"
-          @record="showResult"
-          @record-start="recordStart"
-          @record-stop="recordStop"
-          @record-blank="recordNoResult"
-          @record-failed="recordFailed"
-          @record-ready="recordReady"
-          color="#fff"
-          tipPosition="top"
-          interactiveMode="touch"
-          server=""
-          appId=""
-          APIKey=""
+        ref="recorderButton"
+        v-if="show"
+        v-model="result"
+        @record="showResult"
+        @record-start="recordStart"
+        @record-stop="recordStop"
+        @record-blank="recordNoResult"
+        @record-failed="recordFailed"
+        @record-ready="recordReady"
+        color="#fff"
+        tipPosition="top"
       >
         <template slot="no-speak">没听清您说的什么</template>
       </voice-input-button>
     </div>
+    <div class="result" @click="show = !show">{{result}}</div>
   </div>
 </template>
 
 <script>
-import VoiceInputButton from './lib/voice-input-button'
 
 export default {
   name: 'App',
-  components: {
-    VoiceInputButton
-  },
   data () {
     return {
       result: '',
@@ -76,17 +68,20 @@ export default {
   }
   #app {
     position: absolute;
+    display: flex;
     top: 100px;
     left: 0;
     right: 0;
     margin: 0 auto;
-    width: 400px;
+    width: 540px;
   }
   .voice-input-button-wrapper{
     width: 42px;
     height: 42px;
     background-color: mediumpurple;
     border-radius: 50%;
+    flex-grow: 0;
+    flex-shrink: 0;
   }
   .result{
     width: 100%;
@@ -97,6 +92,8 @@ export default {
     font-size: 16px;
     color: #727272;
     min-height: 24px;
+    margin-left: 15px;
     margin-bottom: 25px;
+    flex-grow: 1;
   }
 </style>

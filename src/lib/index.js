@@ -1,8 +1,7 @@
 import voiceInputButton from './voice-input-button.vue'
 
 voiceInputButton.install = function (Vue, Options) {
-  Vue.prototype.ASRConfig = Options
-  console.info(Options)
+  Vue.prototype.IATConfig = Options
   Vue.component(voiceInputButton.name, voiceInputButton)
 }
 
