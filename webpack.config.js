@@ -1,5 +1,7 @@
-var path = require('path')
-var webpack = require('webpack')
+const path = require('path')
+const webpack = require('webpack')
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
+const VueLoaderPlugin = require('vue-loader/lib/plugin')
 
 module.exports = {
   entry: process.env.NODE_ENV === 'production' ? './src/lib/index.js' : './src/main.js',
@@ -11,6 +13,9 @@ module.exports = {
     libraryTarget: 'umd',
     umdNamedDefine: true
   },
+  plugins: [
+    new VueLoaderPlugin()
+  ],
   module: {
     rules: [
       {
@@ -24,6 +29,7 @@ module.exports = {
         test: /\.scss$/,
         use: [
           'vue-style-loader',
+          'css-loader',
           'sass-loader'
         ],
       },      {
@@ -70,6 +76,7 @@ module.exports = {
 
 if (process.env.NODE_ENV === 'production') {
   module.exports.devtool = '#source-map'
+  module.exports.mode = 'production'
   // http://vue-loader.vuejs.org/en/workflow/production.html
   module.exports.plugins = (module.exports.plugins || []).concat([
     new webpack.DefinePlugin({
@@ -77,14 +84,21 @@ if (process.env.NODE_ENV === 'production') {
         NODE_ENV: '"production"'
       }
     }),
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      compress: {
-        warnings: false
-      }
-    }),
     new webpack.LoaderOptionsPlugin({
       minimize: true
     })
   ])
+  module.exports.optimization = {
+    minimizer: [
+      new UglifyJsPlugin({
+        cache: true,
+        parallel: true, // 开启并行压缩，充分利用cpu
+        sourceMap: true,
+        extractComments: true, // 移除注释
+        uglifyOptions: {
+          compress: false
+        }
+      })
+    ]
+  }
 }
