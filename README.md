@@ -9,6 +9,7 @@
 > 旧版接口请查看[voice-input-button](https://github.com/ferrinweb/voice-input-button)
 
 ## Screenshots / 截屏
+![](https://github.com/ferrinweb/voice-input-button2/raw/master/screenshots/voice-input-screen-capture.gif)
 ![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots3.png)
 ![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots4.png)
 ![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots5.png)
