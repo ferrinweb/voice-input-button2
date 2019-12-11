@@ -18,6 +18,8 @@
 
 ## How to use / 如何使用
 
+> 使用中遇到问题，欢迎前往 [Issues](https://github.com/ferrinweb/voice-input-button2/issues) 提交问题单或反馈。
+
 ### Create APP and get apiKey / 创建一个语音应用
 
 1. 您需要在讯飞开放平台上创建一个基于语音听写 WebApi 的语音应用：[创建应用](https://console.xfyun.cn/app/create?source=WebAPI)
