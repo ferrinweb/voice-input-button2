@@ -72,9 +72,9 @@ export default {
     <div class="result">{{result}}</div>
     <div class="voice-input-button-wrapper">
       <voice-input-button
-        server="您的代理地址"
         appId="您的应用ID"
-        APIKey="您开通的语音听写服务APIKey"
+        apiKey="您开通的语音听写服务 APIKey"
+        apiSecret="您开通的语音听写服务的 apiSecret"
         v-model="result"
         @record="showResult"
         @record-start="recordStart"
@@ -85,9 +85,6 @@ export default {
         interactiveMode="touch"
         color="#fff"
         tipPosition="top"
-        appId=""
-        apiKey=""
-        apiSecret=""
       >
         <template slot="no-speak">没听清您说的什么</template>
       </voice-input-button>
