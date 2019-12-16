@@ -14,8 +14,7 @@
         @record-blank="recordNoResult"
         @record-failed="recordFailed"
         @record-ready="recordReady"
-        color="#fff"
-        tipPosition="top"
+        @record-complete="recordComplete"
       >
         <template slot="no-speak">没听清您说的什么</template>
       </voice-input-button>
@@ -35,11 +34,14 @@ export default {
     }
   },
   methods: {
-    showResult (text) {
-      console.info('收到识别结果：', text)
+    recordReady () {
+      console.info('按钮就绪!')
     },
     recordStart () {
       console.info('录音开始')
+    },
+    showResult (text) {
+      console.info('收到识别结果：', text)
     },
     recordStop () {
       console.info('录音结束')
@@ -47,11 +49,11 @@ export default {
     recordNoResult () {
       console.info('没有录到什么，请重试')
     },
+    recordComplete (text) {
+      console.info('识别完成! 最终结果：', text)
+    },
     recordFailed (error) {
       console.info('识别失败，错误栈：', error)
-    },
-    recordReady () {
-      console.info('按钮就绪!')
     }
   }
 }

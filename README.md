@@ -9,12 +9,15 @@
 > 旧版接口请查看[voice-input-button](https://github.com/ferrinweb/voice-input-button)
 
 ## Screenshots / 截屏
-![](https://github.com/ferrinweb/voice-input-button2/raw/master/screenshots/voice-input-screen-capture.gif)
-![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots3.png)
-![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots4.png)
-![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots5.png)
-![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots.png)
-![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots2.png)
+
+<div align="center">
+![](https://github.com/ferrinweb/voice-input-button2/raw/master/screenshots/voice-input-screen-capture.gif)</div>
+<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots3.png)</div>
+<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots4.png)</div>
+<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots5.png)</div>
+<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots.png)</div>
+<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots2.png)
+</div>
 
 ## How to use / 如何使用
 
@@ -28,30 +31,37 @@
 
 ### Install / 安装
 
-```javascript
+```bash
 npm install voice-input-button2
-// or install from github reponsitory
+# or install from github reponsitory
 npm install https://github.com/ferrinweb/voice-input-button2.git
 
-// or use yarn / 推荐使用 yarn
+# or use yarn / 推荐使用 yarn
 yarn add voice-input-button2
-// or install from github reponsitory
+# or install from github reponsitory
 yarn add https://github.com/ferrinweb/voice-input-button2.git
 ```
 
 ### Import / 引入
 
+#### global import / 全局引入
+
 ```javascript
-// global import / 全局引入
 import voiceInputButton from 'voice-input-button2'
 Vue.use(voiceInputButton, {
   appId: '', // 您申请的语音听写服务应用的ID
   apiKey: '', // 您开通的语音听写服务的 apiKey
-  apiSecret: '' // 您开通的语音听写服务的 apiSecret
+  apiSecret: '', // 您开通的语音听写服务的 apiSecret
+  color: '#fff', // 按钮图标的颜色
+  tipPosition: 'top' // 提示条位置
+  ... // 其他配置项, 参见下方 [Attributes / 属性] 部分
 })
+```
+#### import on demand in your vue component file. / 按需引入
 
-// import on demand in your vue component file. / 按需引入
-// 在这种引入方式下，您必须通过在组件标签上设置 appId、apiKey、apiSecret 等属性来配置相关参数
+> 在这种引入方式下，您必须通过在组件标签上设置 appId、apiKey、apiSecret 等属性来配置相关参数
+
+```javascript
 import voiceInputButton from 'voice-input-button2'
 export default {
   components: {
@@ -62,9 +72,10 @@ export default {
 ```
 
 ### Use and demo / 使用及示例
-> You can ckeckout this repository and try this demo.
 
-> 你可以直接检出 voice-input-button2 源码到本地，查看示例。
+> Here is an example of introducing code on demand. You can checkout this repository, run and try this demo.
+
+> 此处演示按需引入方案，你可以直接检出 voice-input-button2 源码到本地，运行并查看示例。
 
 ```html
 <template>
@@ -82,6 +93,7 @@ export default {
         @record-blank="recordNoResult"
         @record-failed="recordFailed"
         @record-ready="recordReady"
+        @record-complete="recordComplete"
         interactiveMode="touch"
         color="#fff"
         tipPosition="top"
@@ -106,11 +118,14 @@ export default {
     }
   },
   methods: {
-    showResult (text) {
-      console.info('收到识别结果：', text)
+    recordReady () {
+      console.info('按钮就绪!')
     },
     recordStart () {
       console.info('录音开始')
+    },
+    showResult (text) {
+      console.info('收到识别结果：', text)
     },
     recordStop () {
       console.info('录音结束')
@@ -118,11 +133,11 @@ export default {
     recordNoResult () {
       console.info('没有录到什么，请重试')
     },
+    recordComplete (text) {
+      console.info('识别完成! 最终结果：', text)
+    },
     recordFailed (error) {
       console.info('识别失败，错误栈：', error)
-    },
-    recordReady () {
-      console.info('按钮就绪!')
     }
   }
 }
@@ -165,14 +180,25 @@ export default {
 </style>
 ```
 
+#### 项目源码启动方式
+
+```bash
+# 安装依赖
+yarn install
+# 启动项目
+yarn run dev
+```
+
 ### Slots / 插槽
+
 名称 | 说明 | 默认值
 |---|---|---|
-recording | 正在录音提示文字，按下按钮时，将显示该录音中提示文本 | 好，请讲…
+recording | 正在录音提示文字，按下按钮时，将显示该录音中提示文本 | 好，请讲...
 no-speak | 录音完成但未能识别到有效结果是的提示文本 | 您好像没说什么
 wait | 按下录音按钮后，按钮准备好前的提示文本 | 请稍后...
 
 ### Attributes / 属性
+
 名称 | 类型 | 说明 | 默认值
 |---|---|---|---|
 color | String | 麦克风按钮及录音中、识别中图标的颜色 | #333
@@ -192,15 +218,16 @@ vad_eos | Number | 用于设置端点检测的静默时间，即静默多长时�
 
 
 ### Events / 事件
-名称 | 说明
-|---|---|
-record | 录音识别完成，事件携带识别结果
-input | 录音识别完成，事件携带识别结果，用于 v-model 绑定变量
-record-start | 按下按钮开始录音
-record-stop | 录音结束，开始上传语音数据进行识别
-record-blank | 录音识别完成，但无识别结果
-record-failed | 录音识别失败，事件携带错误栈数据
-record-ready | 录音按钮已就绪
+名称 | 说明 | 参数
+|---|---| ---|
+record | 收到识别结果。<br>在 returnMode 的 complete 模式下，表示收到最终结果 | 当前识别结果
+input | 录音识别完成，用于 v-model 绑定变量 | 当前识别结果
+record-start | 按下按钮开始录音 | 无
+record-stop | 录音结束。<br>一般当松开按钮（press 模式）或关闭录音（touch 模式）时触发；<br>也可能由组件根据静默时长配置（vad_eos）触发 | 无
+record-blank | 录音识别完成，但无识别结果 | 无
+record-failed | 录音识别失败 | 错误栈数据
+record-ready | 录音按钮已就绪 | 无
+record-complete | 语音识别完成事件。<br>相较于 record-stop，该事件表示语音识别已完成并返回了最终结果 | 最终识别结果
 
 > 注意：新版接口为流式版本，即识别过程中会有多次返回，其中包含对前面识别结果的追加、补充和修正。因此在同一识别过程中会多次触发 record 和 input 事件，在您将收到的识别结果拼接到其他字符串时，您需要注意到这点。如果仅需要返回最后的结果，则可以将 returnMode 属性设置为 complete。
 

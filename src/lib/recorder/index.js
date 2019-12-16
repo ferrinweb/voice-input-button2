@@ -17,7 +17,7 @@ import CryptoJS from './hmac-sha256'
 import './enc-base64-min'
 import recordWorker from './transform.pcm.worker'
 import createWorker from '../../utils/create-worker'
-import locales from '../locales.json'
+import locales from '../mixins/locales.json'
 
 // 音频转码worker
 const recorderWorker = createWorker(recordWorker)

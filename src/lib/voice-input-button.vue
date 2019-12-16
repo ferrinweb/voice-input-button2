@@ -12,17 +12,17 @@
       @touchend="pressMode && stop($event)"
       @touchleave="pressMode && stop($event)"
     >
-      <microphone v-if="!recording" :color="color"></microphone>
-      <recording-icon v-else-if="state === 'ing' || responding || result" :color="color"></recording-icon>
-      <loading v-else :color="color"></loading>
+      <microphone v-if="!recording" :color="getConfig('color')"></microphone>
+      <recording-icon v-else-if="state === 'ing' || responding || result" :color="getConfig('color')"></recording-icon>
+      <loading v-else :color="getConfig('color')"></loading>
       <transition name="fade">
-        <recording-tip v-if="state === 'ing' || responding || result" :position="tipPosition">
+        <recording-tip v-if="state === 'ing' || responding || result" :position="getConfig('tipPosition')">
           <slot name="recording">{{ result || locale.recording }}</slot>
         </recording-tip>
-        <recording-tip v-if="state === 'init'" :position="tipPosition">
+        <recording-tip v-if="state === 'init'" :position="getConfig('tipPosition')">
           <slot name="wait">{{ locale.wait }}</slot>
         </recording-tip>
-        <recording-tip v-if="blank" :position="tipPosition">
+        <recording-tip v-if="blank" :position="getConfig('tipPosition')">
           <slot name="no-speak">{{ locale.say_nothing }}</slot>
         </recording-tip>
       </transition>
@@ -31,12 +31,12 @@
 </template>
 
 <script>
-import locales from './locales.json'
 import Recorder from './recorder'
 import loading from './components/icons/loading'
 import recordingIcon from './components/icons/recording-icon'
 import microphone from './components/icons/microphone'
 import recordingTip from './components/recording-tip'
+import config from './mixins/config'
 const freezeProperty = (obj, key) => {
   Object.defineProperty(obj, key, {
     configurable: false
@@ -46,48 +46,12 @@ const buffer = []
 
 export default {
   name: 'voice-input-button',
+  mixins: [config],
   components: {
     loading,
     recordingIcon,
     microphone,
     recordingTip
-  },
-  props: {
-    color: {
-      type: String,
-      default: '#333'
-    },
-    tipPosition: String,
-    appId: String,
-    apiKey: String,
-    apiSecret: String,
-    // 交互模式
-    // 'press': 按下开始录音，放开结束录音
-    // 'touch': 点击开始录音，再次点击结束录音
-    interactiveMode: {
-      type: String,
-      default: 'press'
-    },
-    // 结果返回模式
-    // 'increment': 增量模式，增量返回识别结果，但对于每次返回都是一个完整的结果，包含对前面识别结果的追加、补充和修正
-    // 'complete': 完整模式，完成本次识别后返回最终结果
-    returnMode: {
-      type: String,
-      defualt: 'increment'
-    },
-    language: {
-      type: String,
-      default: 'zh_cn'
-    },
-    accent: String,
-    pd: String,
-    rlang: String,
-    ptt: Number,
-    nunum: Number,
-    vad_eos: {
-      type: Number,
-      default: 3000
-    }
   },
   data () {
     return {
@@ -194,6 +158,7 @@ export default {
       if (result) {
         this.$emit('record', result)
         this.$emit('input', result)
+        ls && this.$emit('record-complete', result)
       } else {
         this.$emit('record-blank')
         this.blank = true
@@ -204,28 +169,12 @@ export default {
     }
   },
   computed: {
-    pressMode () {
-      return this.interactiveMode !== 'touch'
-    },
-    touchMode () {
-      return this.interactiveMode === 'touch'
-    },
-    incrementMode () {
-      return this.returnMode === 'increment'
-    },
-    completeMode () {
-      return this.returnMode === 'complete'
-    },
-    locale () {
-      const locale = locales[(this.IATConfig || {}).language || this.language]
-      return locale
-    },
     state () {
       return this.recorder ? this.recorder.state : 'end'
     }
   },
   created () {
-    const IATConfig = this.IATConfig || {}
+    const config = this.getConfig
     const recorder = new Recorder({
       onClose: () => {
         this.stop()
@@ -245,16 +194,16 @@ export default {
         }
       },
       onStart: () => {},
-      appId: IATConfig.appId || this.appId,
-      apiKey: IATConfig.apiKey || this.apiKey,
-      apiSecret: IATConfig.apiSecret || this.apiSecret,
-      accent: IATConfig.accent || this.accent,
-      language: IATConfig.language || this.language,
-      pd: IATConfig.pd || this.pd,
-      rlang: IATConfig.rlang || this.rlang,
-      ptt: IATConfig.ptt || this.ptt,
-      nunum: IATConfig.nunum || this.nunum,
-      vad_eos: IATConfig.vad_eos || this.vad_eos
+      appId: config('appId'),
+      apiKey: config('apiKey'),
+      apiSecret: config('apiSecret'),
+      accent: config('accent'),
+      language: config('language'),
+      pd: config('pd'),
+      rlang: config('rlang'),
+      ptt: config('ptt'),
+      nunum: config('nunum'),
+      vad_eos: config('vad_eos')
     })
     const freezKeys = [
       'appId', 'apiSecret', 'apiKey', 'accent', 'language',
