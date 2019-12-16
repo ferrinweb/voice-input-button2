@@ -10,14 +10,12 @@
 
 ## Screenshots / 截屏
 
-<div align="center">
-![](https://github.com/ferrinweb/voice-input-button2/raw/master/screenshots/voice-input-screen-capture.gif)</div>
-<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots3.png)</div>
-<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots4.png)</div>
-<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots5.png)</div>
-<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots.png)</div>
-<div align="center">![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots2.png)
-</div>
+![](https://github.com/ferrinweb/voice-input-button2/raw/master/screenshots/voice-input-screen-capture.gif)
+![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots3.png)
+![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots4.png)
+![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots5.png)
+![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots.png)
+![](https://github.com/ferrinweb/voice-input-button/raw/master/screenshots/screenshots2.png)
 
 ## How to use / 如何使用
 
@@ -44,7 +42,7 @@ yarn add https://github.com/ferrinweb/voice-input-button2.git
 
 ### Import / 引入
 
-#### global import / 全局引入
+#### Global Import / 全局引入
 
 ```javascript
 import voiceInputButton from 'voice-input-button2'
@@ -57,7 +55,7 @@ Vue.use(voiceInputButton, {
   ... // 其他配置项, 参见下方 [Attributes / 属性] 部分
 })
 ```
-#### import on demand in your vue component file. / 按需引入
+#### Import On Demand In Your Vue Component File / 按需引入
 
 > 在这种引入方式下，您必须通过在组件标签上设置 appId、apiKey、apiSecret 等属性来配置相关参数
 
@@ -210,7 +208,7 @@ apiKey | String | 您开通的语音听写服务的 apiKey | 无
 apiSecret | String | 您开通的语音听写服务的 apiSecret | 无
 language | String | 语种，参见讯飞语音听写[接口文档](https://www.xfyun.cn/doc/asr/voicedictation/API.html#业务参数) | zh_cn
 accent | String | 方言，参见讯飞语音听写[接口文档](https://www.xfyun.cn/doc/asr/voicedictation/API.html#业务参数) | mandarin
-pd | String | 领域个性化参数，参见讯飞语音听写[接口文档](https://www.xfyun.cn/doc/asr/voicedictation/API.html#业务参数) | 
+pd | String | 领域个性化参数，参见讯飞语音听写[接口文档](https://www.xfyun.cn/doc/asr/voicedictation/API.html#业务参数) | 无
 rlang | String | 简体: zh_cn<br>繁体: zh-hk | zh_cn
 ptt | Number | 是否开启标点符号添加（仅中文支持）：<br>1 -> 开启; 0 -> 关闭 | 1
 nunum | Number | 将返回结果的数字格式规则为阿拉伯数字格式:<br>1 -> 开启; 0 -> 关闭 | 1
