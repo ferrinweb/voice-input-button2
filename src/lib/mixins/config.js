@@ -1,6 +1,10 @@
 import locales from './locales.json'
 const defaultConfig = {
   color: '#333',
+  tipPosition: 'top',
+  tipTextColor: '#f2f2f2',
+  tipBackgroundColor: '#4b667d',
+  tipShadowColor: 'rgba(0,0,0,.1)',
   interactiveMode: 'press',
   returnMode: 'increment',
   language: 'zh_cn',

@@ -5,7 +5,8 @@
     "say_nothing": "您好像没说什么",
     "not_supported": "无法录音：未找到录音设备、当前浏览器不支持录音或用户未授权！",
     "socket_error": "WebSocket连接失败",
-    "access_microphone_failed": "请求麦克风失败"
+    "access_microphone_failed": "请求麦克风失败",
+    "missing_configuration": "缺少 appId、apiKey、apiSecret 配置"
   },
   "en_us": {
     "wait": "Please wait…",
@@ -13,6 +14,7 @@
     "say_nothing": "You don't seem to say anything",
     "not_supported": "Unable to record: No recording device was found, the current browser does not support recording, or the user is not authorized!",
     "socket_error": "socket connect failed",
-    "access_microphone_failed": "access microphone failed"
+    "access_microphone_failed": "access microphone failed",
+    "missing_configuration": "Missing appId, apiKey and apiSecret configuration"
   }
 }

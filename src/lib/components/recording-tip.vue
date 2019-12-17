@@ -2,7 +2,16 @@
 <!-- Create Time: 2019/1/2 15:44 -->
 <!-- Description: recording-tip -->
 <template>
-  <div class="recording-tip" :class="position">
+  <div
+    :class="position"
+    :style="`
+      background-color: ${tipBackgroundColor};
+      border-color: ${tipBackgroundColor};
+      color: ${tipTextColor};
+      box-shadow: ${tipShadowColor} 0 2px 2px;
+    `"
+    class="recording-tip"
+  >
     <slot></slot>
   </div>
 </template>
@@ -11,10 +20,10 @@
 export default {
   name: 'recording-tip',
   props: {
-    position: {
-      type: String,
-      default: 'top'
-    }
+    position: String,
+    tipTextColor: String,
+    tipBackgroundColor: String,
+    tipShadowColor: String
   }
 }
 </script>
@@ -29,20 +38,15 @@ export default {
     white-space: nowrap;
     padding: 0;
     border-radius: 3px;
-    background-color: #4b667d;
-    box-shadow: rgba(0,0,0,.1) 0 2px 2px;
-    color: #f2f2f2;
     pointer-events: none;
-    overflow: hidden;
     border-width: 2px 15px 3px;
     border-style: solid;
-    border-color: #4b667d;
     &:before{
       position: absolute;
       margin: auto;
       content: " ";
-      width: 10px;
-      height: 10px;
+      width: 14px;
+      height: 14px;
       background-color: inherit;
     }
     &.top{
@@ -50,7 +54,7 @@ export default {
       left: 50%;
       transform: translate3d(-50%,0,0);
       &:before{
-        bottom: -5px;
+        bottom: -7px;
         left: 0;
         right: 0;
         clip-path: polygon(0% 50%, 50% 100%, 100% 50%);
@@ -61,7 +65,7 @@ export default {
       top: 50%;
       transform: translate3d(0,-50%,0);
       &:before{
-        left: -5px;
+        left: -21px;
         top: 0;
         bottom: 0;
         clip-path: polygon(0% 50%, 50% 100%, 50% 0%);
@@ -72,7 +76,7 @@ export default {
       left: 50%;
       transform: translate3d(-50%,0,0);
       &:before{
-        top: -5px;
+        top: -7px;
         left: 0;
         right: 0;
         clip-path: polygon(0% 50%, 50% 0%, 100% 50%);
@@ -83,7 +87,7 @@ export default {
       top: 50%;
       transform: translate3d(0,-50%,0);
       &:before{
-        right: -5px;
+        right: -21px;
         top: 0;
         bottom: 0;
         clip-path: polygon(100% 50%, 50% 100%, 50% 0%);

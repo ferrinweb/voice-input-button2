@@ -16,14 +16,16 @@
       <recording-icon v-else-if="state === 'ing' || responding || result" :color="getConfig('color')"></recording-icon>
       <loading v-else :color="getConfig('color')"></loading>
       <transition name="fade">
-        <recording-tip v-if="state === 'ing' || responding || result" :position="getConfig('tipPosition')">
-          <slot name="recording">{{ result || locale.recording }}</slot>
-        </recording-tip>
-        <recording-tip v-if="state === 'init'" :position="getConfig('tipPosition')">
-          <slot name="wait">{{ locale.wait }}</slot>
-        </recording-tip>
-        <recording-tip v-if="blank" :position="getConfig('tipPosition')">
-          <slot name="no-speak">{{ locale.say_nothing }}</slot>
+        <recording-tip
+          v-if="state === 'ing' || state === 'init' || responding || result || blank"
+          :position="getConfig('tipPosition')"
+          :tipTextColor="getConfig('tipTextColor')"
+          :tipBackgroundColor="getConfig('tipBackgroundColor')"
+          :tipShadowColor="getConfig('tipShadowColor')"
+        >
+          <slot v-if="state === 'ing' || responding || result" name="recording">{{ result || locale.recording }}</slot>
+          <slot v-if="state === 'init'" name="wait">{{ locale.wait }}</slot>
+          <slot v-if="blank" name="no-speak">{{ locale.say_nothing }}</slot>
         </recording-tip>
       </transition>
     </div>
@@ -80,6 +82,11 @@ export default {
     start (e) {
       e.preventDefault()
       if (!this.isAudioAvailable) {
+        const config = this.getConfig
+        if (!config('appId') || !config('apiKey') || !config('apiSecret')) {
+          alert(this.locale.missing_configuration)
+          return
+        }
         alert(this.locale.not_supported)
         return
       }
@@ -90,8 +97,10 @@ export default {
       this.timer = setInterval(() => {
         this.time = new Date().getTime() - this.startTime
       }, 20)
-      this.recorder.start()
-      this.$emit('record-start')
+      setTimeout(() => {
+        this.recorder.start()
+        this.$emit('record-start')
+      })
     },
     stop (e) {
       e && e.preventDefault()
@@ -213,7 +222,7 @@ export default {
       freezeProperty(recorder, key)
     })
     this.recorder = recorder
-    this.isAudioAvailable = this.recorder.isAudioAvailable
+    this.isAudioAvailable = this.recorder.isAudioAvailable && config('appId') && config('apiKey') && config('apiSecret')
   },
   beforeDestroy () {
     this.recorder.stop()

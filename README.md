@@ -6,7 +6,7 @@
 
 > 按下按钮说话，松开按钮识别。同时支持配置为点击说话，再次点击结束说话。
 
-> 旧版接口请查看[voice-input-button](https://github.com/ferrinweb/voice-input-button)
+> 旧版接口请查看 [voice-input-button](https://github.com/ferrinweb/voice-input-button)
 
 ## Screenshots / 截屏
 
@@ -25,7 +25,7 @@
 
 1. 您需要在讯飞开放平台上创建一个基于语音听写 WebApi 的语音应用：[创建应用](https://console.xfyun.cn/app/create?source=WebAPI)
 2. 为该应用开通语音听写服务
-3. 获取应用的 **appId**、**apiKey**、**APISecret**，这是必须的。
+3. 获取应用的 `appId`、`apiKey`、`APISecret`，这是必须的。
 
 ### Install / 安装
 
@@ -200,9 +200,12 @@ wait | 按下录音按钮后，按钮准备好前的提示文本 | 请稍后...
 名称 | 类型 | 说明 | 默认值
 |---|---|---|---|
 color | String | 麦克风按钮及录音中、识别中图标的颜色 | #333
-tipPosition | String | 正在录音及未识别提示出现的位置，支持 top/right/left/bottom 四个取值 | top
+tipPosition | String | 提示条出现的位置，支持 top/right/left/bottom 四个取值 | top
+tipTextColor | String | 提示条文本颜色 | #f2f2f2
+tipBackgroundColor | String | 提示条背景色 | #4b667d
+tipShadowColor | String | 提示条阴影色 | rgba(0,0,0,.1)
 interactiveMode | String | 交互模式: <br>press -> 按下开始录音，放开结束录音; <br>touch -> 点击开始录音，再次点击结束录音 | press
-returnMode | String | 结果返回模式: <br>increment -> 增量模式，增量返回识别结果，但对于每次返回都是一个完整的结果，包含对前面识别结果的追加、补充和修正; <br>complete -> 完整模式，完成本次识别后返回最终结果 | increment
+returnMode | String | 识别结果返回模式: <br>increment -> 增量模式，增量返回识别结果。每次返回都是一个阶段性的完整结果，包含对前面识别结果的追加、补充和修正; <br>complete -> 完整模式，完成本次识别后返回最终结果 | increment
 appId | String | 您申请的语音听写服务应用的 ID | 无
 apiKey | String | 您开通的语音听写服务的 apiKey | 无
 apiSecret | String | 您开通的语音听写服务的 apiSecret | 无
@@ -218,16 +221,16 @@ vad_eos | Number | 用于设置端点检测的静默时间，即静默多长时�
 ### Events / 事件
 名称 | 说明 | 参数
 |---|---| ---|
-record | 收到识别结果。<br>在 returnMode 的 complete 模式下，表示收到最终结果 | 当前识别结果
-input | 录音识别完成，用于 v-model 绑定变量 | 当前识别结果
-record-start | 按下按钮开始录音 | 无
-record-stop | 录音结束。<br>一般当松开按钮（press 模式）或关闭录音（touch 模式）时触发；<br>也可能由组件根据静默时长配置（vad_eos）触发 | 无
-record-blank | 录音识别完成，但无识别结果 | 无
-record-failed | 录音识别失败 | 错误栈数据
 record-ready | 录音按钮已就绪 | 无
-record-complete | 语音识别完成事件。<br>相较于 record-stop，该事件表示语音识别已完成并返回了最终结果 | 最终识别结果
+record-start | 按下按钮开始录音 | 无
+record | 收到识别结果。<br>在 `returnMode` 的 `complete` 模式下，表示收到最终结果 | 当前识别结果
+input | 收到识别结果，与 `record` 事件同步抛出，用于 `v-model` 绑定变量 | 当前识别结果
+record-stop | 录音结束。<br>一般当松开按钮（`press` 模式）或关闭录音（`touch` 模式）时触发；<br>也可能由组件根据静默时长配置（`vad_eos`）触发 | 无
+record-blank | 录音识别完成，但无识别结果 | 无
+record-complete | 语音识别完成事件。<br>相较于 `record-stop`，该事件表示语音识别已完成并返回了最终结果 | 最终识别结果
+record-failed | 录音识别失败 | 错误栈数据
 
-> 注意：新版接口为流式版本，即识别过程中会有多次返回，其中包含对前面识别结果的追加、补充和修正。因此在同一识别过程中会多次触发 record 和 input 事件，在您将收到的识别结果拼接到其他字符串时，您需要注意到这点。如果仅需要返回最后的结果，则可以将 returnMode 属性设置为 complete。
+> 注意：新版接口为流式版本，即识别过程中会有多次返回，其中包含对前面识别结果的追加、补充和修正。因此在同一识别过程中会多次触发 `record` 和 `input` 事件，在您将收到的识别结果拼接到其他字符串时，您需要注意到这点。如果仅需要返回最后的结果，则可以监听 `record-complete` 事件或将 `returnMode` 属性设置为 `complete`。
 
 ## Lisence
 MIT Lisence.
