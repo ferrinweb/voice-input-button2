@@ -59,9 +59,6 @@ export default {
     return {
       recorder: null,
       processing: false,
-      startTime: 0,
-      time: 0,
-      timer: null,
       recording: false,
       inputTarget: null,
       isAudioAvailable: false,
@@ -81,6 +78,7 @@ export default {
     },
     start (e) {
       e.preventDefault()
+      if (this.recording || (e && e.which !== 1)) return
       if (!this.isAudioAvailable) {
         const config = this.getConfig
         if (!config('appId') || !config('apiKey') || !config('apiSecret')) {
@@ -90,27 +88,18 @@ export default {
         alert(this.locale.not_supported)
         return
       }
-      if (this.recording || (e.which !== 1 && e.which !== 0)) return
       this.reset()
       this.recording = true
-      this.startTime = new Date().getTime()
-      this.timer = setInterval(() => {
-        this.time = new Date().getTime() - this.startTime
-      }, 20)
-      setTimeout(() => {
-        this.recorder.start()
-        this.$emit('record-start')
-      })
+      this.recorder.start()
+      this.$emit('record-start')
     },
     stop (e) {
       e && e.preventDefault()
-      if (!this.recording || e && (e.which !== 1 && e.which !== 0)) return
+      if (e && e.which !== 1) return
       this.recording = false
-      this.timer && clearInterval(this.timer)
-      this.time = 0
+      this.recorder.stop()
       this.$emit('record-stop')
       this.processing = true
-      this.recorder.stop()
     },
     reset () {
       buffer.splice(0)

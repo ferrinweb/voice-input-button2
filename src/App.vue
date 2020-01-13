@@ -8,6 +8,7 @@
         ref="recorderButton"
         v-if="show"
         v-model="result"
+        color="white"
         @record="showResult"
         @record-start="recordStart"
         @record-stop="recordStop"

@@ -49,51 +49,86 @@ class IatRecorder {
     this.vad_eos = config.vad_eos
   }
 
+  closeTrack () {
+    try {
+      if (this.recorder) {
+        this.recorder.disconnect()
+        this.recorder = null
+      }
+      if (this.mediaStream) {
+        this.recorder && this.recorder.context && this.mediaStream.disconnect(this.recorder)
+        this.mediaStream.mediaStream.getTracks().forEach(track => {
+          track.stop()
+        })
+      }
+    } catch (e) {
+      console.warn(e.message)
+    }
+  }
+
+  initRecorder () {
+    if (this.state === 'end') return
+    if (!this.context) {
+      const context = new AudioContext()
+      this.context = context
+    }
+    this.recorder = this.context.createScriptProcessor(0, 1, 1)
+
+    const getMediaSuccess = (stream) => {
+      if (this.state === 'end') {
+        this.closeTrack()
+        return
+      }
+      const mediaStream = this.context.createMediaStreamSource(stream)
+      this.mediaStream = mediaStream
+      this.recorder && (this.recorder.onaudioprocess = (e) => {
+        if (this.state === 'end') {
+          this.closeTrack()
+          return
+        }
+        this.sendData(e.inputBuffer.getChannelData(0))
+      })
+      this.connectWebsocket()
+    }
+    const getMediaFail = (e) => {
+      this.recorder = null
+      this.mediaStream = null
+      this.context = null
+      console.warn(e.message || locales[this.language].access_microphone_failed)
+    }
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: false
+      }).then((stream) => {
+        getMediaSuccess(stream)
+      }).catch((e) => {
+        getMediaFail(e)
+      })
+    } else {
+      navigator.getUserMedia({
+        audio: true,
+        video: false
+      }, (stream) => {
+        getMediaSuccess(stream)
+      }, function (e) {
+        getMediaFail(e)
+      })
+    }
+  }
+
   start () {
-    this.stop()
     if (navigator.getUserMedia && AudioContext) {
       this.state = 'init'
       if (!this.recorder) {
-        if (!this.context) {
-          const context = new AudioContext()
-          this.context = context
-        }
-        this.recorder = this.context.createScriptProcessor(0, 1, 1)
-
-        const getMediaSuccess = (stream) => {
-          const mediaStream = this.context.createMediaStreamSource(stream)
-          this.mediaStream = mediaStream
-          this.recorder.onaudioprocess = (e) => {
-            this.sendData(e.inputBuffer.getChannelData(0))
-          }
-          this.connectWebsocket()
-        }
-        const getMediaFail = (e) => {
-          this.recorder = null
-          this.mediaStream = null
-          this.context = null
-          console.warn(e.message || locales[this.language].access_microphone_failed)
-        }
-        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: false
-          }).then((stream) => {
-            getMediaSuccess(stream)
-          }).catch((e) => {
-            getMediaFail(e)
-          })
-        } else {
-          navigator.getUserMedia({
-            audio: true,
-            video: false
-          }, (stream) => {
-            getMediaSuccess(stream)
-          }, function (e) {
-            getMediaFail(e)
-          })
-        }
+        setTimeout(() => {
+          this.initRecorder()
+        }, 100)
       } else {
+        if (this.state === 'end') {
+          this.closeTrack()
+          return
+        }
         this.connectWebsocket()
       }
     } else {
@@ -103,18 +138,6 @@ class IatRecorder {
 
   stop () {
     this.state = 'end'
-    try {
-      if (this.recorder) {
-        this.mediaStream.disconnect(this.recorder)
-        this.recorder.disconnect()
-        this.recorder = null
-      }
-      this.mediaStream && this.mediaStream.mediaStream.getTracks().forEach(track => {
-        track.stop()
-      })
-    } catch (e) {
-      console.warn(e.message)
-    }
   }
 
   sendData (buffer) {
@@ -146,6 +169,9 @@ class IatRecorder {
       return null
     }
     this.ws.onopen = (e) => {
+      if (!this.mediaStream || !this.recorder) {
+        return
+      }
       this.mediaStream.connect(this.recorder)
       this.recorder.connect(this.context.destination)
       this.state = 'ready'
