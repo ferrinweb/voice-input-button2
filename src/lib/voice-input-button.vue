@@ -77,8 +77,8 @@ export default {
       this.recording ? this.stop(e) : this.start(e)
     },
     start (e) {
-      e.preventDefault()
-      if (this.recording || (e && e.which !== 1)) return
+      e.cancelable && e.preventDefault()
+      if (this.recording || (e && e.type === 'mousedown' && e.which !== 1)) return
       if (!this.isAudioAvailable) {
         const config = this.getConfig
         if (!config('appId') || !config('apiKey') || !config('apiSecret')) {
@@ -94,10 +94,10 @@ export default {
       this.$emit('record-start')
     },
     stop (e) {
-      e && e.preventDefault()
-      if (e && e.which !== 1) return
+      e && e.cancelable && e.preventDefault()
+      if (e && e.type === 'mousedown' && e.which !== 1) return
       this.recording = false
-      this.recorder.stop()
+      this.recorder && this.recorder.stop()
       this.$emit('record-stop')
       this.processing = true
     },
