@@ -41,7 +41,7 @@ class IatRecorder {
     this.appId = config.appId
     this.apiKey = config.apiKey
     this.apiSecret = config.apiSecret
-    this.isAudioAvailable = !!(navigator.getUserMedia && AudioContext && recorderWorker)
+    this.isAudioAvailable = !!((navigator.getUserMedia||navigator.mediaDevices.getUserMedia) && AudioContext && recorderWorker)
     this.pd = config.pd
     this.rlang = config.rlang
     this.ptt = config.ptt
@@ -119,6 +119,19 @@ class IatRecorder {
 
   start () {
     if (navigator.getUserMedia && AudioContext) {
+      this.state = 'init'
+      if (!this.recorder) {
+        setTimeout(() => {
+          this.initRecorder()
+        }, 100)
+      } else {
+        if (this.state === 'end') {
+          this.closeTrack()
+          return
+        }
+        this.connectWebsocket()
+      }
+    } else if (navigator.mediaDevices.getUserMedia && AudioContext) {
       this.state = 'init'
       if (!this.recorder) {
         setTimeout(() => {
