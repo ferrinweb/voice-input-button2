@@ -62,11 +62,12 @@ module.exports = {
     extensions: ['*', '.js', '.vue', '.json']
   },
   devServer: {
-    host: 'localhost',
+    host: '0.0.0.0',
     historyApiFallback: true,
     noInfo: true,
     overlay: true,
-    hot: true
+    hot: true,
+    https: true
   },
   performance: {
     hints: false
