@@ -25,7 +25,7 @@
     "publish": "npm publish"
   },
   "dependencies": {
-    "vue": "2.6.10"
+    "vue": "^2.6.12"
   },
   "browserslist": [
     "> 1%",
@@ -43,7 +43,6 @@
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.0.1",
     "file-loader": "4.3.0",
-    "jest": "^23.6.0",
     "node-sass": "^4.11.0",
     "sass-loader": "8.0.0",
     "style-loader": "^1.0.1",
